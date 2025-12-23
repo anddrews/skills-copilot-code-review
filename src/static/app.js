@@ -888,7 +888,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (announcements.length > 0) {
         // Display the first active announcement
         const announcement = announcements[0];
-        announcementBanner.textContent = announcement.message;
+        announcementBanner.textContent = "📢 " + announcement.message;
         announcementBanner.classList.remove("hidden");
       } else {
         announcementBanner.classList.add("hidden");
@@ -947,12 +947,65 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
           <div class="announcement-item-actions">
-            <button class="edit-announcement-btn" onclick="editAnnouncement('${announcement._id}')">Edit</button>
-            <button class="delete-announcement-btn" onclick="deleteAnnouncement('${announcement._id}')">Delete</button>
+            <button class="edit-announcement-btn" data-id="${announcement._id}">Edit</button>
+            <button class="delete-announcement-btn" data-id="${announcement._id}">Delete</button>
           </div>
         </div>
       `;
     }).join("");
+  }
+
+  // Delegate clicks on announcement action buttons to avoid inline handlers
+  announcementsList.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!target) {
+      return;
+    }
+
+    const editButton = target.closest(".edit-announcement-btn");
+    const deleteButton = target.closest(".delete-announcement-btn");
+
+    if (!editButton && !deleteButton) {
+      return;
+    }
+
+    const announcementElement = target.closest(".announcement-item");
+    if (!announcementElement) {
+      console.error("Announcement element not found for action button click");
+      return;
+    }
+
+    const announcementId = announcementElement.getAttribute("data-id");
+    if (!announcementId) {
+      console.error("Announcement ID not found on announcement element");
+      return;
+    }
+
+    if (editButton) {
+      editAnnouncement(announcementId);
+    } else if (deleteButton) {
+      deleteAnnouncement(announcementId);
+    }
+  });
+    const editButtons = announcementsList.querySelectorAll(".edit-announcement-btn");
+    editButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const announcementId = button.getAttribute("data-id") || button.closest(".announcement-item")?.getAttribute("data-id");
+        if (announcementId && typeof editAnnouncement === "function") {
+          editAnnouncement(announcementId);
+        }
+      });
+    });
+
+    const deleteButtons = announcementsList.querySelectorAll(".delete-announcement-btn");
+    deleteButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const announcementId = button.getAttribute("data-id") || button.closest(".announcement-item")?.getAttribute("data-id");
+        if (announcementId && typeof deleteAnnouncement === "function") {
+          deleteAnnouncement(announcementId);
+        }
+      });
+    });
   }
 
   // Escape HTML to prevent XSS
